@@ -1,0 +1,64 @@
+const int consttest =+1;
+const char constchar = 'm';
+int globalvar1, globalarray[50];
+char globcharray[20], globalchar;
+
+void function1(int m, char c)
+{
+	const int k = 9;
+	int fun1a,array[4],array1[5];
+	char fun2b;
+	fun1a = 1;
+	do{
+		globalvar1 = m + (k * fun1a * (consttest + fun1a));
+		globalarray[3] = globalarray[9] + -1 - +6 ;
+	}while(m<100)
+	globalvar1 = m + c;
+	return ;
+}
+char function4(int m, char c)
+{
+	const int k = 9;
+	int fun1a;
+	char fun2b;
+	fun1a = 1;
+	do{
+		m = m + k * fun1a;
+		fun1a = fun1a + 1;
+	}while(m<100)
+	globalvar1 = m + c;
+	return c;
+}
+
+int function2()
+{
+	int m;
+	m  = function4(4,'+');
+	return consttest + m;
+}
+int function3(int m)
+{
+	if (m<=0)
+		return 1;
+	if(m < 6)
+		return m * function3(m-1);
+}
+void main()
+{
+	int input, iter;
+	scanf(input);
+	printf("outputtest:program begins!");
+	for ( iter = 0; iter < 20; iter = iter + 1)
+	{
+		globcharray[iter] = iter;
+	}
+	if(input > 200)
+	{
+		for (iter = 0; iter < input/20; iter = iter + 1)
+			printf(function3(iter));
+	}
+	else{
+		function1(input,'k');
+		printf(function2());
+	}
+}

@@ -1,0 +1,12 @@
+int glo;
+int test1(int a, int b)
+{
+	return a + b;
+}
+void main()
+{
+	const int m = 10;
+	int k;
+	k = (test1(3,m*5))/4;
+	glo = k-40;
+}

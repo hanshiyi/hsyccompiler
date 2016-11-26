@@ -1,12 +1,15 @@
 int glo;
-int test1(int a, int b)
+int test1(int a, int b, int c, int d, int e,int f)
 {
-	return a + b;
+	printf(c);
+	return b*(a*e-f)/2;
 }
 void main()
 {
 	const int m = 10;
-	int k;
-	k = (test1(3,m*5))/4;
+	int k,input;
+	scanf(input,k);
+	k = (test1(7,m*5,1,2,3,4))/4;
 	glo = k-40;
+	printf("test succeed!");
 }

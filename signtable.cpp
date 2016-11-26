@@ -150,8 +150,15 @@ int signtable::findidshift(std::string id,std::string funcname)
             return (*it).shift;
         }
     }
+    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+    {
+        if(id == (*it).id  && (*it).pos == find_funcname(funcname))
+        {
+            return (*it).shift;
+        }
+    }
     int count = 1;
-    int size = st.funcList[find_funcname(funcname)].paralist.size();
+    int size = (int)st.funcList[find_funcname(funcname)].paralist.size();
     for (std::vector<tableTerm>::iterator it = st.funcList[find_funcname(funcname)].paralist.begin();
          it != st.funcList[find_funcname(funcname)].paralist.end(); it++,count++) {
         if (id == (*it).id) {
@@ -159,7 +166,7 @@ int signtable::findidshift(std::string id,std::string funcname)
             {
                 return -1;
             } else{
-                return -(56+(size - count)*4 + st.funcList[find_funcname(funcname)].shift);
+                return (56+(size - count)*4 + st.funcList[find_funcname(funcname)].shift);
             }
         }
     }
@@ -170,7 +177,7 @@ int signtable::findidparano(std::string id,std::string funcname)
 {
 
     int count = 0;
-    int size = st.funcList[find_funcname(funcname)].paralist.size();
+    int size = (int)st.funcList[find_funcname(funcname)].paralist.size();
     for (std::vector<tableTerm>::iterator it = st.funcList[find_funcname(funcname)].paralist.begin();
          it != st.funcList[find_funcname(funcname)].paralist.end(); it++,count++) {
         if (id == (*it).id) {

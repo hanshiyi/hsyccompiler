@@ -44,6 +44,7 @@ void skip(set<symbolSystem > skipset)
 void error(std::string s)
 {
     cout << "ERROR" << ++errornum << ": in Line" << line << "," << cc  << " : " << s << endl;
+    exit(10);
 }
 void fetal(std::string s)
 {
@@ -725,10 +726,12 @@ void condition(std::string conditionlabel)
 {
     set<symbolSystem > skipset;
     int pos = conditionlabel.find('_');
-    getsym();
     if(conditionlabel[0] == 'f')
     {
         qi.addQua(quadruple("", "", "", "", "forloopcondition_"+conditionlabel.substr(pos+1)));
+    } else
+    {
+        getsym();
     }
     expression();
     string endlabel;
@@ -889,7 +892,8 @@ void forstatement()
             {
                 getsym();
                 expression();
-                qi.addQua(quadruple("move", idp, "result", "", ""));
+                st.check_variable(idp);
+                qi.addQua(quadruple("move", "convar_"+idp, "result", "", ""));
                 if(sym == semicolon)
                 {
                     getsym();
@@ -934,11 +938,20 @@ void forstatement()
                                             statement();
                                             if(stepsym == addsym)
                                             {
-                                                qi.addQua(quadruple("addi", step1, step2, steplength, ""));
+
+                                                qi.addQua(quadruple("LI", "$t0",  steplength,"", ""));
+                                                qi.addQua(quadruple("move", "$t1",  "convar_"+step2 ,"", ""));
+                                                qi.addQua(quadruple("add", "$t1", "$t0", "t1", ""));
+                                                qi.addQua(quadruple("move", "result", "$t1", "", ""));
+                                                qi.addQua(quadruple("move", "convar_"+step1, "result", "", ""));
                                             }
                                             else if(stepsym == minussym)
                                             {
-                                                qi.addQua(quadruple("subi", step1, step2, steplength, ""));
+                                                qi.addQua(quadruple("LI", "$t0",  steplength,"", ""));
+                                                qi.addQua(quadruple("move", "$t1",  "convar_"+step2 ,"", ""));
+                                                qi.addQua(quadruple("sub", "$t1", "$t0", "t1", ""));
+                                                qi.addQua(quadruple("move", "result", "$t1", "", ""));
+                                                qi.addQua(quadruple("move", "convar_"+step1, "result", "", ""));
                                             }
                                             qi.addQua(quadruple("j", "forloopcondition_" + ss.str(), "", "", ""));
                                             qi.addQua(quadruple("", "", "", "", "forloopend_" + ss.str()));
@@ -978,6 +991,7 @@ void scanfstatement()
                 }
                 st.check_variable(id);
                 qi.addQua(quadruple("scan", id, "", "", ""));
+                getsym();
             }
             if(sym == rightparathe)
             {

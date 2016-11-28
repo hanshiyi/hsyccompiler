@@ -22,7 +22,7 @@ void main()
 	int array[20];
 	scanf(input);
 	printf(fib(input));
-	array[1] = 3;
+	array[1] = -3;
 	array[2] = 1;
 	array[3] = 2;
 	printf(array[array[array[3]]]);

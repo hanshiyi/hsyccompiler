@@ -32,16 +32,17 @@ void quadrupleintepreter::generate_target_mips() {
             }
         }
     }int count =0;
-    for(std::vector<string>::iterator striter = st.stringlist.begin() ; striter!= st.stringlist.end(); striter++, count++)
-    {
-        os << "string_" << count <<"\t:\t" << ".asciiz\t" << "\"" << (*striter) << "\"" << endl;
-    }
+
     for(std::vector<arrayTerm>::iterator gloiter = st.arrayList.begin(); gloiter!=st.arrayList.end(); gloiter++)
     {
         if((*gloiter).pos == -1)
         {
             os << (*gloiter).id << "\t:\t" << ".space\t" << (*gloiter).length*4 << endl;
         }
+    }
+    for(std::vector<string>::iterator striter = st.stringlist.begin() ; striter!= st.stringlist.end(); striter++, count++)
+    {
+        os << "string_" << count <<"\t:\t" << ".asciiz\t" << "\"" << (*striter) << "\"" << endl;
     }
     os << ".text "<< endl;
     os << "j\tmain" << endl;
@@ -92,7 +93,7 @@ void quadrupleintepreter::generate_target_mips() {
                 for(std::vector<funcTerm>::iterator funciter = st.funcList.begin(); funciter != st.funcList.end(); funciter++)
                 {
                     funcTerm &currentFuc = (*funciter);
-                    if(quadrupleVec[quadCounter].label.substr(10) == currentFuc.id)
+                    if(funcname == currentFuc.id)
                     {
                         os << "\tadd\t" << "$sp,\t" << "$sp,\t" << currentFuc.shift << endl;
                     }
@@ -256,13 +257,23 @@ void quadrupleintepreter::generate_target_mips() {
 
             }else if(quadrupleVec[quadCounter].op == "sub")
             {
-                os << "\tlw\t" << "$s2,\t" << "0($sp)" << endl;
-                os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
-                os << "\tlw\t" << "$s1,\t" << "0($sp)" << endl;
-                os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
-                os << "\tsub\t" << "$s0,\t" <<"$s1,\t" <<"$s2" << endl;
-                os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
-                os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
+                if(quadrupleVec[quadCounter].op1 == "$0")
+                {
+                    os << "\tlw\t" << "$s2,\t" << "0($sp)" << endl;
+                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    os << "\tsub\t" << "$s0,\t" <<"$0,\t" <<"$s2" << endl;
+                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                    os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
+                } else
+                {
+                    os << "\tlw\t" << "$s2,\t" << "0($sp)" << endl;
+                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    os << "\tlw\t" << "$s1,\t" << "0($sp)" << endl;
+                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    os << "\tsub\t" << "$s0,\t" <<"$s1,\t" <<"$s2" << endl;
+                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                    os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
+                }
             }else if(quadrupleVec[quadCounter].op == "mult")
             {
                 os << "\tlw\t" << "$s2,\t" << "0($sp)" << endl;

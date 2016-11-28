@@ -73,7 +73,7 @@ void syntax_analyze()
     }
     while(!eofFlag)
     {
-
+        string idtmp = id;
         if(sym == intsym || sym == charsym)
         {
             type = sym;

@@ -204,6 +204,11 @@ main:
 	addi	$sp,	$sp,	-4
 	addi	$s0,	$0,	3
 	sw	$s0,	0($sp)
+	lw	$s2,	0($sp)
+	addi	$sp,	$sp,	4
+	sub	$s0,	$0,	$s2
+	addi	$sp,	$sp,	-4
+	sw	$s0,	0($sp)
 	lw	$s0,	0($sp)
 	addi	$sp,	$sp,	4
 	lw	$t0,	0($sp)

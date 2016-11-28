@@ -11,5 +11,7 @@ void main()
 	scanf(input,k);
 	k = (test1(7,m*5,1,2,3,4))/4;
 	glo = k-40;
+	printf("greatk:",k);
+	printf("wonderful",glo);
 	printf("test succeed!");
 }

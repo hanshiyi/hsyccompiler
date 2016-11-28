@@ -24,7 +24,7 @@ void getsym()
 {
 
     id = "";
-    while(c == '\n' || c == ' ' || c == '\t')
+    while(c == '\n' || c == ' ' || c == '\t' || c == '\r')
     {
         if(c == '\n')
         {
@@ -180,6 +180,7 @@ void getsym()
         }
     } else{
         sym = notsym;
+        id = c;
         getch();
     }
 }

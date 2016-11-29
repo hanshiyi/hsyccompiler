@@ -1,6 +1,8 @@
 int globala[10];
 int fib(int n)
 {
+    if(1)
+        printf("fuck");
 	if(n==1)
 	{
 		return 1;

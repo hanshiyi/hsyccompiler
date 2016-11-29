@@ -30,6 +30,7 @@ symbolSystem scope;
 symbolSystem type;
 extern signtable st;
 extern quadrupleintepreter qi;
+bool charexpression;
 
 void skip(set<symbolSystem > skipset)
 {
@@ -588,7 +589,8 @@ void statement()
     }else if(sym == leftbrace)
     {
         getsym();
-        multiplestatement();
+        if(sym != rightbrace)
+            multiplestatement();
     }else if(sym == scanfsym)
     {
         getsym();
@@ -660,7 +662,7 @@ void statement()
             qi.addQua(quadruple("paraend",ss.str(),"","",""));
             if(count != st.funcList[pos].paralist.size())
             {
-                fetal("Unmatched parameters");
+                fetal("Unmatched parameters " + ss.str() );
             }
             getsym();
             if(sym == semicolon)
@@ -700,12 +702,14 @@ void statement()
                 fetal("return value missed!");
             }
 
+            qi.addQua(quadruple("return", "", "", "", ""));
             getsym();
         } else {
             if(st.funcList[st.funcList.size()-1].typ == voidsym)
             {
                 fetal("void function should not have return value");
             }
+
             expression();
             qi.addQua(quadruple("return", "result", "", "", ""));
 //        cout << "return statement"<< endl;
@@ -719,6 +723,11 @@ void statement()
                 getsym();
             }
         }
+    } else if (sym == semicolon){
+        getsym();
+    }else{
+        fetal("made !");
+        getsym();
     }
 //    cout << id <<  " : statement" << endl;
 }
@@ -747,6 +756,7 @@ void condition(std::string conditionlabel)
     {
         endlabel = "dowhileend_"+conditionlabel.substr(pos+1);
     }
+
     if(sym == equ || sym == let || sym == leeqt || sym == neq || sym == grt || sym == greqt)
     {
         symbolSystem condisym = sym;
@@ -809,7 +819,18 @@ void condition(std::string conditionlabel)
             fetal("conditon");
             exit(0);
         }
-    } else{
+    }else if(sym == rightparathe || sym == semicolon)
+    {
+        qi.addQua(quadruple("move", "compare2", "$0", "", ""));
+        qi.addQua(quadruple("bne", "$s1", "$s2", conditionlabel, ""));
+        qi.addQua(quadruple("j", endlabel, "", "", ""));
+        if(conditionlabel[0] == 'i')
+        {
+            qi.addQua(quadruple("", "", "", "", conditionlabel));
+        }
+        getsym();
+    }
+    else{
         error("Unfinished statement!!");
         symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
         skipset.clear();
@@ -906,7 +927,7 @@ void forstatement()
                         bool judge = st.check_variable(id);
                         if(!judge)
                         {
-                            fetal("no such variable");
+                            fetal("no such variable " + id);
                         }
                         step1 = id;
                         getsym();
@@ -1027,7 +1048,13 @@ void printfstatement()
             else if(sym == comma){
                 getsym();
                 expression();
-                qi.addQua(quadruple("print", "result", "", "", ""));
+                if(charexpression)
+                {
+                    qi.addQua(quadruple("print", "result", "char", "", ""));
+                } else
+                {
+                    qi.addQua(quadruple("print", "result", "", "", ""));
+                }
                 if(sym == rightparathe)
                 {
                     getsym();
@@ -1037,7 +1064,13 @@ void printfstatement()
         }else
         {
             expression();
-            qi.addQua(quadruple("print", "result", "", "", ""));
+            if(charexpression)
+            {
+                qi.addQua(quadruple("print", "result", "char", "", ""));
+            } else
+            {
+                qi.addQua(quadruple("print", "result", "", "", ""));
+            }
             if(sym == rightparathe)
             {
                 getsym();
@@ -1050,10 +1083,10 @@ void printfstatement()
     }
 //    cout << "printf statement" << endl;
 }
-
 void expression()
 {
     int count = 0;
+    charexpression = false;
     symbolSystem tmp = sym;
     if(sym==addsym || sym==minussym)
     {
@@ -1100,6 +1133,7 @@ void term(int term_count)
     factor(count);
     while(sym==mulsym || sym==divsym)
     {
+        charexpression = false;
         if(sym == mulsym || sym == divsym)
         {
             count ++;
@@ -1133,8 +1167,13 @@ void term(int term_count)
     ostringstream ss,fs;
     ss << term_count;
     fs << count;
+    if(term_count!=0)
+        charexpression = false;
     qi.addQua(quadruple("move","$t"+ss.str(),"$s"+fs.str(),"",""));
-
+//    if(charexpression)
+//    {
+//        cout << line << " :" << cc<< " : safjklajsf" << endl;
+//    }
 //    cout << " : term";
 }
 void factor(int count)
@@ -1153,6 +1192,11 @@ void factor(int count)
             st.check_array(symbol);
             getsym();
             expression();
+            symbolSystem type = st.check_type(symbol);
+            if(type == charsym && count==0)
+            {
+                charexpression = true;
+            }
             qi.addQua(quadruple("arrayvalue","$s"+co.str(),symbol,"result",""));
             if(sym==rightbrack)
             {
@@ -1164,16 +1208,16 @@ void factor(int count)
         {
             int pos = st.check_func(symbol,true);
             getsym();
-            int count = 0;
+            int acount = 0;
             qi.addQua(quadruple("call",symbol,"","",""));
             qi.addQua(quadruple("parabegin","","","",""));
             while(sym!=rightparathe)
             {
                 expression();
                 ostringstream ss;
-                ss << count;
+                ss << acount;
                 qi.addQua(quadruple("move","parameter","result","",""));
-                count ++;
+                acount ++;
                 if(sym == comma)
                 {
                     getsym();
@@ -1187,11 +1231,16 @@ void factor(int count)
                 }
 
             }
+            symbolSystem  type = st.check_type(symbol);
+            if(type == charsym && count == 0)
+            {
+                charexpression = true;
+            }
             ostringstream ss;
-            ss << count;
+            ss << acount;
             qi.addQua(quadruple("paraend",ss.str(),"","",""));
             qi.addQua(quadruple("move","$s"+co.str(),"returnvalue","",""));
-            if(count != st.funcList[pos].paralist.size())
+            if(acount != st.funcList[pos].paralist.size())
             {
                 fetal("unmatched parameters");
             }
@@ -1204,6 +1253,14 @@ void factor(int count)
             if(!isvar && !isconstant)
             {
                 fetal("no such identifier");
+            }
+            symbolSystem type = st.check_type(symbol);
+            if(type == notsym)
+            {
+                fetal("unknown type variable/constant " + symbol);
+            }else if(type == charsym)
+            {
+                charexpression = true;
             }
             qi.addQua(quadruple("move","$s"+co.str(),"convar_"+symbol,"",""));
 //            cout << ": factor" ;
@@ -1224,6 +1281,8 @@ void factor(int count)
     }
     else if(sym==character)
     {
+        if(count == 0)
+            charexpression = true;
         ostringstream ss;
         ss << inum;
         qi.addQua(quadruple("LI","$s"+co.str(),ss.str(),"",""));

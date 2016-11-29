@@ -3,6 +3,7 @@
 //
 
 #include "quadrupleintepreter.h"
+#include "syntax.h"
 #include <iostream>
 #include <fstream>
 #include <ios>
@@ -15,7 +16,7 @@ void quadrupleintepreter::generate_target_mips() {
     string dir;
     cin >> dir;
     ofstream os;
-    string newdir = dir + "output.asm";
+    string newdir = dir + "output1.asm";
     os.open(newdir.c_str());
     cout << os.is_open();
     os << ".data" << endl;
@@ -90,6 +91,7 @@ void quadrupleintepreter::generate_target_mips() {
             }
             else if(quadrupleVec[quadCounter].label.substr(0,8) == "funcend_"&& funcname!="main")
             {
+                os <<  funcname + "_end" << ":" << endl;
                 for(std::vector<funcTerm>::iterator funciter = st.funcList.begin(); funciter != st.funcList.end(); funciter++)
                 {
                     funcTerm &currentFuc = (*funciter);
@@ -137,9 +139,14 @@ void quadrupleintepreter::generate_target_mips() {
                     }
                 }
             }
-            else if(quadrupleVec[quadCounter].label != "" && quadrupleVec[quadCounter].label != "funcend_main" )
+            else if(quadrupleVec[quadCounter].label != ""  )
             {
-                os << "\t" << quadrupleVec[quadCounter].label << ":" << endl;
+                if(quadrupleVec[quadCounter].label == "funcend_main")
+                {
+                    os << "\tmain_end"  << ":" << endl;
+
+                } else
+                    os << "\t" << quadrupleVec[quadCounter].label << ":" << endl;
             }
             else if(quadrupleVec[quadCounter].op == "move")
             {
@@ -222,7 +229,7 @@ void quadrupleintepreter::generate_target_mips() {
                     if(quadrupleVec[quadCounter].target == "parameter" && paracount<4)
                     {
                         os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
-                        os << "\tadd\t" << "$a" << paracount << ",\t"<< "$s0" <<",\t" << "$0" << endl;
+                        os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
                         paracount ++;
                     }else{
                         paracount ++;
@@ -237,8 +244,15 @@ void quadrupleintepreter::generate_target_mips() {
                 }
                 else if(quadrupleVec[quadCounter].target == "compare2")
                 {
-                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
-                    os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
+                    if(quadrupleVec[quadCounter].op1 == "$0")
+                    {
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                        os << "\tsw\t" << "$0" <<",\t" << "0($sp)" << endl;
+                    } else
+                    {
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                        os << "\tsw\t" << "$s0" <<",\t" << "0($sp)" << endl;
+                    }
                 }else if(quadrupleVec[quadCounter].op1 == "returnvalue")
                 {
                     os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
@@ -340,6 +354,11 @@ void quadrupleintepreter::generate_target_mips() {
             }
             else if(quadrupleVec[quadCounter].op == "paraend")
             {
+                for(int i = 0; i< paracount && i < 4; i++)
+                {
+                    os << "\tlw\t" << "$a"<< i <<",\t" << 4 * (paracount -1 - i) << "($sp)" << endl;
+                }
+
                 os << "\tjal\t" << callfunc << endl;
                 os << "\tnop\t" << endl;
                 os << "\taddi\t" << "$sp,\t" << "$sp,\t" << paracount*4 << endl;
@@ -348,7 +367,7 @@ void quadrupleintepreter::generate_target_mips() {
                     funcTerm &currentFuc = (*funciter);
                     if(funcname == currentFuc.id)
                     {
-                        os << "\tadd\t" << "$sp,\t" << "$sp,\t" << currentFuc.shift*(-1) << endl;
+                        ////////////////////////////jixed!!!!LKjwflklwefjklwejfklwejflwkefjklwefj
                         os << "\tlw\t" << "$a3,\t" << currentFuc.shift + 48 << "($fp)" << endl;
                         os << "\tlw\t" << "$a2,\t" << currentFuc.shift + 44 << "($fp)" << endl;
                         os << "\tlw\t" << "$a1,\t" << currentFuc.shift + 40 << "($fp)" << endl;
@@ -370,12 +389,30 @@ void quadrupleintepreter::generate_target_mips() {
             }
             else if(quadrupleVec[quadCounter].op == "return")
             {
-                os << "\tadd\t" << "$v0,\t" << "$s0,\t" << "$0" << endl;
+                if(quadrupleVec[quadCounter].target == "result"){
+                    os << "\tadd\t" << "$v0,\t" << "$s0,\t" << "$0" << endl;
+                    os << "\tj\t" << funcname+"_end" << endl;
+                } else
+                {
+                    os << "\tj\t" << funcname+"_end" << endl;
+                }
             }else if(quadrupleVec[quadCounter].op == "scan")
             {
-                os << "\tli\t" << "$v0\t" << 5 << endl;
-                os << "\tsyscall" << endl;
                 string scanname = quadrupleVec[quadCounter].target;
+                symbolSystem  type = st.check_type1(scanname,funcname);
+                if( type == charsym)
+                {
+                    os << "\tli\t" << "$v0\t" << 12 << endl;
+                }
+                else if(type == intsym)
+                {
+                    os << "\tli\t" << "$v0\t" << 5 << endl;
+                }
+                else if(type == notsym)
+                {
+                    fetal("unknown type");
+                }
+                os << "\tsyscall" << endl;
                 bool isglo = st.check_global(scanname,funcname);
                 if(isglo)
                 {
@@ -396,13 +433,24 @@ void quadrupleintepreter::generate_target_mips() {
             {
                 if(quadrupleVec[quadCounter].target == "result")
                 {
-                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
-                    os << "\tsw\t" << "$a0" <<",\t" << "0($sp)" << endl;
-                    os << "\taddi\t" << "$a0,\t" << "$s0,\t" << 0 << endl;
-                    os << "\tli\t" << "$v0\t" << 1 << endl;
-                    os << "\tsyscall" << endl;
-                    os << "\tlw\t" << "$a0,\t" << "0($sp)" << endl;
-                    os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    if(quadrupleVec[quadCounter].op1 == "") {
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                        os << "\tsw\t" << "$a0" << ",\t" << "0($sp)" << endl;
+                        os << "\taddi\t" << "$a0,\t" << "$s0,\t" << 0 << endl;
+                        os << "\tli\t" << "$v0\t" << 1 << endl;
+                        os << "\tsyscall" << endl;
+                        os << "\tlw\t" << "$a0,\t" << "0($sp)" << endl;
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    } else
+                    {
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;
+                        os << "\tsw\t" << "$a0" << ",\t" << "0($sp)" << endl;
+                        os << "\taddi\t" << "$a0,\t" << "$s0,\t" << 0 << endl;
+                        os << "\tli\t" << "$v0\t" << 11 << endl;
+                        os << "\tsyscall" << endl;
+                        os << "\tlw\t" << "$a0,\t" << "0($sp)" << endl;
+                        os << "\taddi\t" << "$sp,\t" << "$sp,\t" << 4 << endl;
+                    }
                 } else
                 {
                     os << "\taddi\t" << "$sp,\t" << "$sp,\t" << -4 << endl;

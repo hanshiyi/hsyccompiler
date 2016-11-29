@@ -1,8 +1,9 @@
 .data
-string_0	:	.asciiz	"dowhile: "
-string_1	:	.asciiz	"arrayvalue:"
-string_2	:	.asciiz	"The end!!"
 globala	:	.space	40
+string_0	:	.asciiz	"fuck"
+string_1	:	.asciiz	"dowhile: "
+string_2	:	.asciiz	"arrayvalue:"
+string_3	:	.asciiz	"The end!!"
 .text 
 j	main
 fib:
@@ -24,33 +25,31 @@ fib:
 	add	$sp,	$sp,	0
 	add	$fp,	$sp,	$0
 	addi	$sp,	$sp,	-4
-	sw	$a0,	0($sp)
-	lw	$s0,	0($sp)
-	addi	$sp,	$sp,	4
-	addi	$sp,	$sp,	-4
-	sw	$s0,	0($sp)
-	addi	$sp,	$sp,	-4
 	addi	$s0,	$0,	1
 	sw	$s0,	0($sp)
 	lw	$s0,	0($sp)
 	addi	$sp,	$sp,	4
 	addi	$sp,	$sp,	-4
 	sw	$s0,	0($sp)
+	addi	$sp,	$sp,	-4
+	sw	$0,	0($sp)
 	lw	$s2,	0($sp)
 	addi	$sp,	$sp,	4
 	lw	$s1,	0($sp)
 	addi	$sp,	$sp,	4
-	beq	$s1,	$s2,	ifbegin_0
+	bne	$s1,	$s2,	ifbegin_0
 	j	ifend_0
 	ifbegin_0:
-	addi	$sp,	$sp,	-4
-	addi	$s0,	$0,	1
-	sw	$s0,	0($sp)
-	lw	$s0,	0($sp)
-	addi	$sp,	$sp,	4
-	add	$v0,	$s0,	$0
 	j	elseend_0
 	ifend_0:
+	elseend_0:
+	addi	$sp,	$sp,	-4
+	sw	$a0,	0($sp)
+	la	$a0	string_0
+	li	$v0	4
+	syscall
+	lw	$a0,	0($sp)
+	addi	$sp,	$sp,	4
 	addi	$sp,	$sp,	-4
 	sw	$a0,	0($sp)
 	lw	$s0,	0($sp)
@@ -58,7 +57,7 @@ fib:
 	addi	$sp,	$sp,	-4
 	sw	$s0,	0($sp)
 	addi	$sp,	$sp,	-4
-	addi	$s0,	$0,	0
+	addi	$s0,	$0,	1
 	sw	$s0,	0($sp)
 	lw	$s0,	0($sp)
 	addi	$sp,	$sp,	4
@@ -79,6 +78,34 @@ fib:
 	add	$v0,	$s0,	$0
 	j	elseend_1
 	ifend_1:
+	addi	$sp,	$sp,	-4
+	sw	$a0,	0($sp)
+	lw	$s0,	0($sp)
+	addi	$sp,	$sp,	4
+	addi	$sp,	$sp,	-4
+	sw	$s0,	0($sp)
+	addi	$sp,	$sp,	-4
+	addi	$s0,	$0,	0
+	sw	$s0,	0($sp)
+	lw	$s0,	0($sp)
+	addi	$sp,	$sp,	4
+	addi	$sp,	$sp,	-4
+	sw	$s0,	0($sp)
+	lw	$s2,	0($sp)
+	addi	$sp,	$sp,	4
+	lw	$s1,	0($sp)
+	addi	$sp,	$sp,	4
+	beq	$s1,	$s2,	ifbegin_2
+	j	ifend_2
+	ifbegin_2:
+	addi	$sp,	$sp,	-4
+	addi	$s0,	$0,	1
+	sw	$s0,	0($sp)
+	lw	$s0,	0($sp)
+	addi	$sp,	$sp,	4
+	add	$v0,	$s0,	$0
+	j	elseend_2
+	ifend_2:
 	addi	$sp,	$sp,	-4
 	sw	$a0,	0($sp)
 	addi	$sp,	$sp,	-4
@@ -141,8 +168,9 @@ fib:
 	lw	$s0,	0($sp)
 	addi	$sp,	$sp,	4
 	add	$v0,	$s0,	$0
+	elseend_2:
 	elseend_1:
-	elseend_0:
+	add	$sp,	$sp,	0
 	lw	$fp,	52($sp)
 	lw	$a3,	48($sp)
 	lw	$a2,	44($sp)
@@ -394,7 +422,7 @@ main:
 	dowhilebegin_0:
 	addi	$sp,	$sp,	-4
 	sw	$a0,	0($sp)
-	la	$a0	string_0
+	la	$a0	string_1
 	li	$v0	4
 	syscall
 	lw	$a0,	0($sp)
@@ -413,7 +441,7 @@ main:
 	addi	$sp,	$sp,	4
 	addi	$sp,	$sp,	-4
 	sw	$a0,	0($sp)
-	la	$a0	string_1
+	la	$a0	string_2
 	li	$v0	4
 	syscall
 	lw	$a0,	0($sp)
@@ -477,7 +505,7 @@ main:
 	dowhileend_0:
 	addi	$sp,	$sp,	-4
 	sw	$a0,	0($sp)
-	la	$a0	string_2
+	la	$a0	string_3
 	li	$v0	4
 	syscall
 	lw	$a0,	0($sp)

@@ -36,6 +36,8 @@ public:
     bool check_global(std::string id, std::string func_id);
     int find_funcname(std::string id);
     int findidparano(std::string id,std::string funcname);
+    symbolSystem check_type(std::string id);
+    symbolSystem check_type1(std::string id, std::string funcname);
 };
 
 #endif //UNTITLED_SIGNTABLE_H

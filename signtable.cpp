@@ -116,6 +116,74 @@ bool signtable::check_variable(std::string id) {
     }
     return false;
 }
+symbolSystem signtable::check_type(std::string id) {
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id  && ((*it).pos == st.funcList.size()-1))
+        {
+            return (*it).typ;
+        }
+    }
+    for (std::vector<tableTerm>::iterator it = st.funcList[st.funcList.size()-1].paralist.begin();
+         it != st.funcList[st.funcList.size()-1].paralist.end(); it++) {
+        if (id == (*it).id) {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+    {
+        if(id == (*it).id &&  ((*it).pos == st.funcList.size()-1))
+        {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id  && ((*it).pos == -1))
+        {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+    {
+        if(id == (*it).id &&  ((*it).pos == -1))
+        {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<funcTerm>::iterator  it = funcList.begin(); it!=funcList.end(); it++)
+    {
+        if(id == (*it).id)
+        {
+            return (*it).typ;
+        }
+    }
+
+    return notsym;
+}
+symbolSystem signtable::check_type1(std::string id, std::string funcname) {
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id  && (*it).pos == find_funcname(funcname))
+        {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+    {
+        if(id == (*it).id  && (*it).pos == find_funcname(funcname))
+        {
+            return (*it).typ;
+        }
+    }
+    for (std::vector<tableTerm>::iterator it = st.funcList[find_funcname(funcname)].paralist.begin();
+         it != st.funcList[find_funcname(funcname)].paralist.end(); it++) {
+        if (id == (*it).id) {
+            return (*it).typ;
+        }
+    }
+    return notsym;
+}
 bool signtable::check_constant(std::string id) {
     for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
     {

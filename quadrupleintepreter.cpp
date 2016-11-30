@@ -16,7 +16,7 @@ void quadrupleintepreter::generate_target_mips() {
     string dir;
     cin >> dir;
     ofstream os;
-    string newdir = dir + "output1.asm";
+    string newdir = dir + "output.asm";
     os.open(newdir.c_str());
     cout << os.is_open();
     os << ".data" << endl;
@@ -41,6 +41,7 @@ void quadrupleintepreter::generate_target_mips() {
             os << (*gloiter).id << "\t:\t" << ".space\t" << (*gloiter).length*4 << endl;
         }
     }
+    os << "stringalign" << count <<"\t:\t" << ".asciiz\t" << "\"" << "space" << "\"" << endl;
     for(std::vector<string>::iterator striter = st.stringlist.begin() ; striter!= st.stringlist.end(); striter++, count++)
     {
         os << "string_" << count <<"\t:\t" << ".asciiz\t" << "\"" << (*striter) << "\"" << endl;

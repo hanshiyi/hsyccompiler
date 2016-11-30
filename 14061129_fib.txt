@@ -2,18 +2,17 @@ int globala[10];
 int fib(int n)
 {
     if(1)
-        printf("fuck");
 	if(n==1)
 	{
-		return 1;
+		return (1);
 	}
 	else if(n==0)
 	{
-		return 1;
+		return (1);
 	}
 	else
 	{
-		return fib(n-1) + fib(n-2);
+		return (fib(n-1) + fib(n-2));
 	}
 }
 
@@ -35,9 +34,9 @@ void main()
 	}
 	input = 10;
 	do{
-		printf("dowhile: ",input);
+		printf("dowhile:",input);
 		printf("arrayvalue:",globala[input]);
 		input = input -2;
 	}while(input > scope)
-	printf("The end!!");
+	printf("The end!!\n");
 }

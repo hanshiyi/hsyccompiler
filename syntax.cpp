@@ -709,8 +709,21 @@ void statement()
             {
                 fetal("void function should not have return value");
             }
-
-            expression();
+            if(sym == leftparathe)
+            {
+                getsym();
+                expression();
+                if(sym == rightparathe)
+                {
+                    getsym();
+                } else
+                {
+                    fetal("unfinished return statement!");
+                }
+            } else
+            {
+                fetal("unfinished return statement!");
+            }
             qi.addQua(quadruple("return", "result", "", "", ""));
 //        cout << "return statement"<< endl;
             if (sym != semicolon) {

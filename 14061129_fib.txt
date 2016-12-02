@@ -20,9 +20,9 @@ void main()
 {
 	const int scope = 5;
 	int input;
-	int array[20];
+	int array[34],jkl[24],jkpo[39],a,p[334];
 	scanf(input);
-	printf(fib(input));
+	printf(fib(input,));
 	array[1] = -3;
 	array[2] = 1;
 	array[3] = 2;

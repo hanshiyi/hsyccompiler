@@ -9,7 +9,7 @@
 #include <set>
 #include "lexical.h"
 void error(std::string);
-void skip(std::set<symbolSystem> );
+void skip();
 void func_analyze( );
 void paraList();
 void constDef();

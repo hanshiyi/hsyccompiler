@@ -36,5 +36,6 @@ public:
         }
     }
     void generate_target_mips();
+    void optimize(std::string dir);
 };
 #endif //UNTITLED_QUADRUPLEINTEPRETER_H

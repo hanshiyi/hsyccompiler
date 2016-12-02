@@ -32,20 +32,66 @@ extern signtable st;
 extern quadrupleintepreter qi;
 bool charexpression;
 
-void skip(set<symbolSystem > skipset)
+void skip()
 {
-    exit(10);
-
-    while(skipset.find(sym) == skipset.end())
+    int count=0;
+    while(sym!=semicolon && sym!=rightbrace)
     {
-        cout << "skip : " << id << endl;
+//        cout << "skip : " << id << endl;
+        if(count > 5)
+        {
+            exit(errornum);
+        }
+        else if(eofFlag)
+        {
+            cout << "made" << endl;
+            count++;
+        }
         getsym();
     }
+    getsym();
+}
+void skipcomma()
+{
+    int count=0;
+    while(sym!=semicolon && sym!=comma && sym!=rightbrace)
+    {
+//        cout << "skip : " << id << endl;
+        if(count > 5)
+        {
+            exit(errornum);
+        }
+        else if(eofFlag)
+        {
+            cout << "made" << endl;
+            count++;
+        }
+        getsym();
+    }
+    getsym();
+}
+void skippara()
+{
+    int count=0;
+    while(sym!=semicolon && sym != rightparathe && sym != comma && sym!=rightbrace)
+    {
+//        cout << "skip : " << id << endl;
+        if(count > 5)
+        {
+            exit(errornum);
+        }
+        else if(eofFlag)
+        {
+            cout << "made" << endl;
+            count++;
+        }
+        getsym();
+    }
+    getsym();
 }
 void error(std::string s)
 {
     cout << "ERROR" << ++errornum << ": in Line" << line << "," << cc  << " : " << s << endl;
-    exit(10);
 }
 void fetal(std::string s)
 {
@@ -69,7 +115,8 @@ void syntax_analyze()
         {
             getsym();
         } else{
-            cout << "const unfinished" << endl;
+            error("const unfinished");
+             skip();
         }
     }
     while(!eofFlag)
@@ -82,10 +129,8 @@ void syntax_analyze()
             if(sym != identifier)
             {
                 error("Lack of identifier");
-                symbolSystem  ss[]={semicolon, rightbrace};
-                skipset.clear();
-                skipset.insert(ss,ss+1);
-                skip(skipset);
+                 skipcomma();
+                continue;
             }
             tableTerm tt(type,id,st.funcList.size());
             getsym();
@@ -107,17 +152,15 @@ void syntax_analyze()
                     if(sym==leftbrack)
                     {
                         getsym();
+                        arrayTerm at(tt,inum,0); ///address unsupported!!!!!!!!!!!!!!!!!!!!!
+                        st.insert_array(at, tt);
                         if(sym != number)
                         {
                             error("array definition lack of appropriate expression");
-                            symbolSystem  ss[]={semicolon};
-                            skipset.clear();
-                            skipset.insert(ss,ss+0);
-                            skip(skipset);
-                        }
-                        arrayTerm at(tt,inum,0); ///address unsupported!!!!!!!!!!!!!!!!!!!!!
-                        st.insert_array(at, tt);
-                        getsym();
+                            skipcomma();
+                            break;
+                        }else
+                           getsym();
                         if(sym == rightbrack)
                         {
                             getsym();
@@ -138,10 +181,7 @@ void syntax_analyze()
                         else
                         {
                             error("unknown token111");
-                            symbolSystem  ss[]={semicolon};
-                            skipset.clear();
-                            skipset.insert(ss,ss);
-                            skip(skipset);
+                            skipcomma();
                         }
                     }
                     else if(sym == comma)
@@ -156,18 +196,14 @@ void syntax_analyze()
                         } else
                         {
                             error("unknown token");
-                            symbolSystem  ss[]={semicolon, rightbrace};
-                            skipset.clear();
-                            skipset.insert(ss,ss);
-                            skip(skipset);
+                            skipcomma();
+                            break;
                         }
                     } else
                     {
-                        error("Illegal begining token");
-                        symbolSystem  ss[]={semicolon, rightbrace};
-                        skipset.clear();
-                        skipset.insert(ss,ss);
-                        skip(skipset);
+                        error("Illegal separate token");
+                        skipcomma();
+                        break;
                     }
                     if(sym == semicolon)
                     {
@@ -177,23 +213,21 @@ void syntax_analyze()
                     }
                 }
 //                cout << ": global variable declaration." << endl;
-                getsym();
+                if(sym == semicolon)
+                    getsym();
             }
         }
         else if(sym == voidsym)
         {
             type = voidsym;
             getsym();
+            tableTerm tt(type,id,st.funcList.size());
             if(sym != identifier && sym!=mainsym)
             {
-                error("Lack of identifier");
-                symbolSystem  ss[]={semicolon, rightbrace};
-                skipset.clear();
-                skipset.insert(ss,ss+1);
-                skip(skipset);
-            }
-            tableTerm tt(type,id,st.funcList.size());
-            getsym();
+                fetal("Lack of identifier");
+                continue;
+            }else
+                getsym();
             if(sym == leftparathe)
             {
                 funcTerm ft(tt,qi.quadNum());
@@ -209,13 +243,15 @@ void syntax_analyze()
             }
             else{
                 error("Illegal void declaration");
-                symbolSystem  ss[]={semicolon, rightbrace};
-                skipset.clear();
-                skipset.insert(ss,ss+1);
-                skip(skipset);
+                skip();
+                continue;
             }
         }
     }
+if(errornum!=0)
+{
+    exit(errornum);
+}
 }
 void integer()
 {
@@ -236,10 +272,6 @@ void integer()
         inum = inum * signflag;
     } else{
         error("Integer detection error!");
-        symbolSystem  ss[]={comma,semicolon};
-        skipset.clear();
-        skipset.insert(ss,ss+1);
-        skip(skipset);
     }
 //    cout << ": Integer";
 }
@@ -248,6 +280,8 @@ void charactor()
     if(id[0]=='\'' && id[2]=='\'')
     {
         inum = id[1];
+    }else{
+        error("character detection error!");
     }
 }
 
@@ -262,10 +296,8 @@ void constDef()
         if(sym != identifier)
         {
             error("Lack of identifier");
-            symbolSystem  ss[]={semicolon, rightbrace};
-            skipset.clear();
-            skipset.insert(ss,ss+1);
-            skip(skipset);
+            skip();
+            return;
         }
         tableTerm tt(type,id,st.funcList.size());
         getsym();
@@ -291,10 +323,8 @@ void constDef()
                     if(sym != identifier)
                     {
                         error("Lack of identifier");
-                        symbolSystem  ss[]={semicolon, rightbrace};
-                        skipset.clear();
-                        skipset.insert(ss,ss+1);
-                        skip(skipset);
+                        skip();
+                        break;
                     }
                     tt = tableTerm(type,id,st.funcList.size());
                     getsym();
@@ -314,34 +344,28 @@ void constDef()
                         getsym();
                     }else  {
                         error("Unfinishted constant declaration!!!");
-                        symbolSystem  ss[]={semicolon, rightbrace};
-                        skipset.clear();
-                        skipset.insert(ss,ss+1);
+                        skip();
+                        break;
                     }
                 } else
                 {
                     error("Lack of separator");
-                    symbolSystem  ss[]={semicolon, rightbrace};
-                    skipset.clear();
-                    skipset.insert(ss,ss+1);
-                    skip(skipset);
+                    skip();
+                    break;
                 }
-
             }
         }
         else  {
             error("Unfinishted constant declaration!!!");
-            symbolSystem  ss[]={semicolon, rightbrace};
-            skipset.clear();
-            skipset.insert(ss,ss+1);
+            skip();
+            return;
         }
 
     } else
     {
         error("Unknown type declaration!!!");
-        symbolSystem  ss[]={semicolon, rightbrace};
-        skipset.clear();
-        skipset.insert(ss,ss+1);
+        skip();
+        return;
     }
 //    cout << "This is a constant definition." << endl;
 }
@@ -355,10 +379,8 @@ void varDef()
         if(sym != identifier)
         {
             error("Lack of identifier");
-            symbolSystem  ss[]={semicolon, rightbrace};
-            skipset.clear();
-            skipset.insert(ss,ss+1);
-            skip(skipset);
+            skip();
+            return;
         }
         tableTerm tt(type,id,st.funcList.size());
         getsym();
@@ -379,10 +401,8 @@ void varDef()
                     if(sym != number)
                     {
                         error("array definition lack of appropriate expression");
-                        symbolSystem  ss[]={semicolon};
-                        skipset.clear();
-                        skipset.insert(ss,ss+0);
-
+                        skip();
+                        break;
                     }
                     arrayTerm at(tt,inum,shift); ///address unsupported!!!!!!!!!!!!!!!!!!!!!
                     shift += 4*inum;
@@ -412,10 +432,9 @@ void varDef()
                     }
                     else
                     {
-                        error("unknown token");
-                        symbolSystem  ss[]={semicolon};
-                        skipset.clear();
-                        skipset.insert(ss,ss);
+                        error("unknown token, expected identifier or semicolon");
+                        skip();
+                        break;
                     }
                 }
                 else if(sym == comma)
@@ -430,18 +449,15 @@ void varDef()
                         getsym();
                     } else
                     {
-                        error("unknown token");
-                        symbolSystem  ss[]={semicolon, rightbrace};
-                        skipset.clear();
-                        skipset.insert(ss,ss);
+                        error("unknown token, expected identifier");
+                        skip();
+                        break;
                     }
                 }else
                 {
                     error("Unknown token");
-                    symbolSystem  ss[]={semicolon, rightbrace};
-                    skipset.clear();
-                    skipset.insert(ss,ss);
-                    skip(skipset);
+                    skip();
+                    break;
                 }
                 if(sym == semicolon)
                 {
@@ -451,7 +467,8 @@ void varDef()
 //                    cout << "This is a variable definition." << endl;
                 }
             }
-            getsym();
+            if(sym == semicolon)
+                getsym();
         }
 
     }
@@ -480,9 +497,7 @@ void func_analyze()
     } else
     {
         error("Illegal void declaration");
-        symbolSystem  ss[]={semicolon, rightbrace};
-        skipset.clear();
-        skipset.insert(ss,ss+1);
+        skip();
     }
     qi.addQua(quadruple("","","","","funcend_"+st.funcList[st.funcList.size()-1].id));
 //    cout << " : function definition";
@@ -500,11 +515,8 @@ void paraList() //empty first give space to the var and constant
             getsym();
             if(sym != identifier)
             {
-                error("Lack of identifier");
-                symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-                skipset.clear();
-                skipset.insert(ss,ss+2);
-                skip(skipset);
+                fetal("Lack of identifier in paralist");
+                skippara();
                 return;
             }
             tableTerm tt(type,id,st.funcList.size());
@@ -518,20 +530,14 @@ void paraList() //empty first give space to the var and constant
                 break;
             } else
             {
-                error("Illegal token!111");
-                symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-                skipset.clear();
-                skipset.insert(ss,ss+2);
-                skip(skipset);
+                error("Illegal token in parameter list");
+                skippara();
                 return;
             }
         }else
         {
-            error("Illegal token!");
-            symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-            skipset.clear();
-            skipset.insert(ss,ss+2);
-            skip(skipset);
+            error("Illegal beginning token!");
+            skippara();
             return;
         }
     }
@@ -565,8 +571,6 @@ int counter = 0;
 void statement()
 {
     set<symbolSystem > skipset;
-
-
     if(sym == ifsym)
     {
         getsym();
@@ -577,15 +581,10 @@ void statement()
         dowhileconditon();
         if(sym == rightparathe)
             getsym();
-        else
-        {
-            ///error
-        }
     }else if(sym == forsym)
     {
         getsym();
         forstatement();
-
     }else if(sym == leftbrace)
     {
         getsym();
@@ -599,7 +598,8 @@ void statement()
             getsym();
         else
         {
-            ///error
+            error("lack of finishing token");
+            skip();
         }
     }
     else if(sym == printfsym)
@@ -610,7 +610,8 @@ void statement()
             getsym();
         else
         {
-            ///error
+            error("lack of finishing token");
+            skip();
         }
     }
     else if(sym == identifier)
@@ -623,7 +624,9 @@ void statement()
             bool judge = st.check_variable(token);
             if(!judge)
             {
-                fetal("no suck variable!");
+                error("no suck variable!");
+                skip();
+                return;
             }
             getsym();
             expression();
@@ -632,7 +635,8 @@ void statement()
                 getsym();
             else
             {
-                ///error
+                error("lack of finishing token");
+                skip();
             }
         }
         else if(sym == leftparathe)
@@ -653,8 +657,11 @@ void statement()
                 if(sym == comma)
                 {
                     getsym();
-                }else
-                {
+                    if(sym == rightparathe)
+                    {
+                        error("lack of arguments");
+                        skip();
+                    }
                 }
             }
             ostringstream  ss;
@@ -718,20 +725,19 @@ void statement()
                     getsym();
                 } else
                 {
-                    fetal("unfinished return statement!");
+                    error("unfinished return statement!");
+                    skip();
                 }
             } else
             {
-                fetal("unfinished return statement!");
+                error("unfinished return statement!");
+                skip();
             }
             qi.addQua(quadruple("return", "result", "", "", ""));
 //        cout << "return statement"<< endl;
             if (sym != semicolon) {
                 error("Unfinished statement!!");
-                symbolSystem ss[] = {semicolon, rightbrace, rightparathe};
-                skipset.clear();
-                skipset.insert(ss, ss + 2);
-                skip(skipset);
+                skip();
             } else {
                 getsym();
             }
@@ -739,8 +745,8 @@ void statement()
     } else if (sym == semicolon){
         getsym();
     }else{
-        fetal("made !");
-        getsym();
+        error("unrecognized statement beginning token");
+        skip();
     }
 //    cout << id <<  " : statement" << endl;
 }
@@ -829,8 +835,8 @@ void condition(std::string conditionlabel)
             getsym();
         else
         {
-            fetal("conditon");
-            exit(0);
+            error("condition");
+            skip();
         }
     }else if(sym == rightparathe || sym == semicolon)
     {
@@ -845,10 +851,7 @@ void condition(std::string conditionlabel)
     }
     else{
         error("Unfinished statement!!");
-        symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-        skipset.clear();
-        skipset.insert(ss,ss+2);
-        skip(skipset);
+        skip();
     }
 //    cout << " : condition" ;
 }
@@ -874,10 +877,7 @@ void ifcondition()
 
     } else{
         error("Unfinished statement!!");
-        symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-        skipset.clear();
-        skipset.insert(ss,ss+2);
-        skip(skipset);
+        skip();
     }
 //    cout << " : if condition statement "<< endl;
 }
@@ -902,10 +902,7 @@ void dowhileconditon()
         }
     } else{
         error("Unfinished statement!!");
-        symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-        skipset.clear();
-        skipset.insert(ss,ss+2);
-        skip(skipset);
+        skip();
     }
 
 }
@@ -981,8 +978,8 @@ void forstatement()
                                             }
                                             else if(stepsym == minussym)
                                             {
-                                                qi.addQua(quadruple("LI", "$t0",  steplength,"", ""));
-                                                qi.addQua(quadruple("move", "$t1",  "convar_"+step2 ,"", ""));
+                                                qi.addQua(quadruple("move", "$t0",  "convar_"+step2 ,"", ""));
+                                                qi.addQua(quadruple("LI", "$t1",  steplength,"", ""));
                                                 qi.addQua(quadruple("sub", "$t1", "$t0", "t1", ""));
                                                 qi.addQua(quadruple("move", "result", "$t1", "", ""));
                                                 qi.addQua(quadruple("move", "convar_"+step1, "result", "", ""));
@@ -1001,8 +998,12 @@ void forstatement()
                 }
             }
         } else{
-
+            fetal("illegal beginning token");
         }
+    } else
+    {
+        fetal("expected left parathesis");
+        skip();
     }
 }
 
@@ -1035,7 +1036,8 @@ void scanfstatement()
         }
     } else
     {
-
+        error("unfinished scanf statement");
+        skip();
     }
 //    cout << "scanf" << endl;
 }
@@ -1092,7 +1094,8 @@ void printfstatement()
         }
     } else
     {
-
+        error("unfinished scanf statement");
+        skip();
     }
 //    cout << "printf statement" << endl;
 }
@@ -1131,8 +1134,7 @@ void expression()
             }
         } else
         {
-            cout  << id <<"fetal"<<endl;
-            exit(0);
+            fetal("expression wrong connector");
         }
     }
     ostringstream ss;
@@ -1173,7 +1175,7 @@ void term(int term_count)
             }
         } else
         {
-            cout <<"fetal in term"<<endl;
+            fetal("fetal in term");
             exit(0);
         }
     }
@@ -1238,9 +1240,9 @@ void factor(int count)
                 {
                     error("Illegal token!~~~~~~~");
                     symbolSystem  ss[]={semicolon, rightbrace, rightparathe};
-                    skipset.clear();
-                    skipset.insert(ss,ss+2);
-                    skip(skipset);
+                    
+                    
+                     skip();
                 }
 
             }
@@ -1314,6 +1316,10 @@ void factor(int count)
 //            cout << " : factor" ;
             return;
         }
+    } else
+    {
+        fetal("expected expression");
+        skip();
     }
 //    cout << " : factor" ;
 }

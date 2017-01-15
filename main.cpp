@@ -64,17 +64,23 @@ int main() {
     line = 1;    // set line number to zero
     sourceFile = fopen(programName.c_str(),"r");
     if(sourceFile == NULL) {
-        cout << "fuck it";
+        cout << "Source File cannot be found.";
         exit(0);
     }
     st = signtable();
     eofFlag = false;
+
     getch();
     inum = -1;
     syntax_analyze();
+    st.assignregister();
 //    st.print();
     qi.st = st;
+    qi.assignregister = true;
+//    qi.print();
+    qi.delete_public_expression();
 //    qi.print();
     qi.generate_target_mips();
+    qi.lsoptimize();
     return 0;
 }

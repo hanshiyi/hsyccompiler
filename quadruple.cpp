@@ -11,3 +11,6 @@ quadruple::quadruple(std::string _op, std::string _target, std::string _op1, std
     op2 = _op2;
     label = _label;
 }
+std::string quadruple::toString() {
+    return op+"\t"+target+"\t"+op1+"\t"+op2+"\t"+label;
+}

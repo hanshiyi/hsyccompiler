@@ -50,33 +50,69 @@ void signtable::insert_func(funcTerm ft, tableTerm tt) {
 }
 
 void signtable::print() {
-    std::cout << "Array definition" << std::endl;
-    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
-    {
-        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<  "; Scope: " << ((*it).pos==-1 ? "global":funcList[(*it).pos].id) << "; Length :" <<(*it).length << " shift: " << (*it).shift <<std::endl;
-    }
+//    std::cout << "Array definition" << std::endl;
+//    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+//    {
+//        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<  "; Scope: " << ((*it).pos==-1 ? "global":funcList[(*it).pos].id) << "; Length :" <<(*it).length << " shift: " << (*it).shift <<std::endl;
+//    }
     std::cout << "Constant or variable definition" << std::endl;
     for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
     {
-        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<  "; Scope: " << ((*it).pos==-1 ? "global":funcList[(*it).pos].id) << "; Value :" <<((*it).isvar ? 0 : (*it).constValue) << " shift: " << (*it).shift<<std::endl;
+        std::cout << "\tType : "<< (*it).typ <<" ;Reg: " << (*it).reg <<";Usetime: "<< (*it).usetime <<"; Name: "<< (*it).id <<  "; Scope: " << ((*it).pos==-1 ? "global":funcList[(*it).pos].id) << "; Value :" <<((*it).isvar ? 0 : (*it).constValue) << " shift: " << (*it).shift<<std::endl;
     }
-    std::cout << "Function definition" << std::endl;
-    for(std::vector<funcTerm>::iterator  it = funcList.begin(); it!=funcList.end(); it++)
+//    std::cout << "Function definition" << std::endl;
+//    for(std::vector<funcTerm>::iterator  it = funcList.begin(); it!=funcList.end(); it++)
+//    {
+//        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<std::endl;
+//        for(std::vector<tableTerm>::iterator iter = (*it).paralist.begin(); iter!=(*it).paralist.end(); iter++)
+//        {
+//            std::cout << "\t\tType" << (*iter).typ <<"; Name: "<< (*iter).id <<  "; Scope: " << ((*iter).pos==-1 ? "global":funcList[(*iter).pos].id) << std::endl;
+//        }
+//    }
+//    std::cout<<"All identifier!" << std::endl;
+//    for(std::vector<tableTerm>::iterator  it = termList.begin(); it!=termList.end(); it++)
+//    {
+//        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<std::endl;
+//
+//    }
+}
+void signtable::assignregister() {
+    int count = 0;
+    for(std::vector<funcTerm>::iterator  funcit = funcList.begin(); funcit!=funcList.end(); funcit++,count++)
     {
-        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<std::endl;
-        for(std::vector<tableTerm>::iterator iter = (*it).paralist.begin(); iter!=(*it).paralist.end(); iter++)
+        std::vector<std::vector<convarTerm>::iterator> convarstack;
+        for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
         {
-            std::cout << "\t\tType" << (*iter).typ <<"; Name: "<< (*iter).id <<  "; Scope: " << ((*iter).pos==-1 ? "global":funcList[(*iter).pos].id) << std::endl;
+            if( (*it).pos == count)
+            {
+                if(convarstack.size()<5)
+                {
+                    convarstack.push_back(it);
+                } else
+                {
+                    int ut = (*it).usetime;
+                    int minspot=0;
+                    for(int i = 0; i<5;i++)
+                    {
+                        if((*convarstack[i]).usetime < (*convarstack[minspot]).usetime)
+                        {
+                            minspot = i;
+                        }
+                    }
+                    if(ut > (*convarstack[minspot]).usetime)
+                        convarstack[minspot] = it;
+                }
+            }
+        }
+        std::string cou[5] = {"$s3","$s4","$s5","$s6","$s7"};
+        for(int i = 0; i < convarstack.size(); i++)
+        {
+            (*convarstack[i]).isassigned = true;
+            (*convarstack[i]).reg = cou[i];
         }
     }
-    std::cout<<"All identifier!" << std::endl;
-    for(std::vector<tableTerm>::iterator  it = termList.begin(); it!=termList.end(); it++)
-    {
-        std::cout << "\tType : "<< (*it).typ <<"; Name: "<< (*it).id <<std::endl;
 
-    }
 }
-
 int signtable::check_func(std::string id,bool returncheck ) {
     int count = 0 ;
     for(std::vector<funcTerm>::iterator  it = funcList.begin(); it!=funcList.end(); it++,count++)
@@ -103,7 +139,16 @@ bool signtable::check_array(std::string id) {
 bool signtable::check_variable(std::string id) {
     for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
     {
-        if(id == (*it).id && (*it).isvar && ((*it).pos == -1 || (*it).pos == st.funcList.size()-1))
+        if(id == (*it).id && (*it).isvar && ( (*it).pos == st.funcList.size()-1))
+        {
+            if((*it).pos == st.funcList.size()-1)
+                (*it).usetime++;
+            return true;
+        }
+    }
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id && (*it).isvar && (*it).pos == -1)
         {
             return true;
         }
@@ -176,6 +221,20 @@ symbolSystem signtable::check_type1(std::string id, std::string funcname) {
             return (*it).typ;
         }
     }
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id  && ((*it).pos == -1))
+        {
+            return (*it).typ;
+        }
+    }
+    for(std::vector<arrayTerm>::iterator  it = arrayList.begin(); it!=arrayList.end(); it++)
+    {
+        if(id == (*it).id &&  ((*it).pos == -1))
+        {
+            return (*it).typ;
+        }
+    }
     for (std::vector<tableTerm>::iterator it = st.funcList[find_funcname(funcname)].paralist.begin();
          it != st.funcList[find_funcname(funcname)].paralist.end(); it++) {
         if (id == (*it).id) {
@@ -187,7 +246,16 @@ symbolSystem signtable::check_type1(std::string id, std::string funcname) {
 bool signtable::check_constant(std::string id) {
     for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
     {
-        if(id == (*it).id && !(*it).isvar && ((*it).pos == -1 || (*it).pos == st.funcList.size()-1))
+        if(id == (*it).id && !(*it).isvar && ((*it).pos == st.funcList.size()-1))
+        {
+            if((*it).pos == st.funcList.size()-1)
+                (*it).usetime++;
+            return true;
+        }
+    }
+    for(std::vector<convarTerm>::iterator  it = convarList.begin(); it!=convarList.end(); it++)
+    {
+        if(id == (*it).id && !(*it).isvar && (*it).pos == -1)
         {
             return true;
         }

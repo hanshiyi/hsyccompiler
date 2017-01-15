@@ -15,5 +15,6 @@ public:
     std::string op2;
     std::string target;
     quadruple(std::string op,std::string target="",std::string op1="",std::string op2="",std::string label="");
+    std::string toString();
 };
 #endif //UNTITLED_QUADRUPLE_H

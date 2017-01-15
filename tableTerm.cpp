@@ -24,6 +24,9 @@ convarTerm::convarTerm(tableTerm tt, int value, int sh, bool isva) {
     shift = sh;
     typ = tt.typ;
     isvar = isva;
+    isassigned = false;
+    reg = "";
+    usetime = 0;
     pos = tt.pos;
     for(std::vector<convarTerm>::iterator it = st.convarList.begin(); it!=st.convarList.end(); it++)
     {

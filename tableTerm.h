@@ -20,8 +20,11 @@ class convarTerm:public tableTerm
 {
 public:
     int constValue;
+    int usetime;
     int shift;
     bool isvar;
+    bool isassigned;
+    std::string reg;
     convarTerm(tableTerm,int,int,bool);
 };
 
@@ -39,6 +42,7 @@ public:
     std::vector<tableTerm> paralist;
     int quadCodeBegin;
     int shift;
+    int tempshift;
     funcTerm(tableTerm,int);
     void insertPara(tableTerm a);
 };
